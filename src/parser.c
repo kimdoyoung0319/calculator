@@ -63,12 +63,16 @@ bool is_operator_token (struct token *t) {
          || t->type == TOKEN_MULTIPLY || t->type == TOKEN_DIVIDE;
 }
 
+// TODO: Fix a bug that 'st' is not reseted to STATE_NORMAL after parser() finised.
 /* Consumes a character 'ch', writes the result to 'r' at 'pos', and returns
    the next position to be written. Has inner state 'st', which may be modified 
    at every call of this function. Does nothing but returns original 'pos' if 
    'ch' is not acceptable character. */
 static int consume (struct token *r, char ch, int pos) {
   static enum parse_state st = STATE_NORMAL;
+
+  if (pos == 0 && r[0].type == TOKEN_NULL)
+    st = STATE_NORMAL;
 
   if (st == STATE_NORMAL && is_special_char (ch)) {
     r[pos++] = char_to_token (ch);

@@ -3,22 +3,25 @@
 #include "lexer.h"
 #include "parser.h"
 
+const int BUFFER_SIZE = 100;
+
 int evaluate (struct expr *);
 int len (char *);
 
 int main (void) {
   int result;
+  char buffer[BUFFER_SIZE];
   struct token *parsed;
   struct expr *expression;
 
-  char str[] = "5 * 8 - 2";
-
-  parsed = parser (str, len (str));
-  expression = lexer (parsed);
-  result = evaluate (expression);
-  destroy_expr (expression);
-
-  printf("Evaluated result = %d\n", result);
+  printf (">> ");
+  while (fgets (buffer, BUFFER_SIZE, stdin) != NULL) {
+    parsed = parser (buffer, len (buffer));
+    expression = lexer (parsed);
+    result = evaluate (expression);
+    destroy_expr (expression);
+    printf("   = %d\n>> ", result);
+  }
 
   return 0;
 }
