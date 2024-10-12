@@ -5,7 +5,7 @@
 #include "parser.h"
 
 /* Precedences of expressions. */
-const int EXPR_PRECEDENCES[] = {0, 0, 1}; 
+const int EXPR_PRECEDENCES[] = {0, 0, 1, 1, 2, 2}; 
 
 /* Struct to represent a stack of nodes. 'top' is the position where a new
    object is pushed, or the number of elements in the stack. 'arr' points to 
@@ -36,7 +36,7 @@ struct expr *lexer (struct token *tokens) {
 	struct expr_stack expressions = make_stack ();
 	struct expr_stack operators = make_stack ();
 
-	for (t = tokens; !is_token_null (*t); t++) 
+	for (t = tokens; !is_token_null (t); t++) 
     analyze (t, &expressions, &operators);
 
   exhaust (&expressions, &operators);
@@ -82,7 +82,7 @@ static void analyze (struct token *t, struct expr_stack *exprs,
     return;
   }
 
-  if (t->type == TOKEN_PLUS) {
+  if (is_operator_token (t)) {
     while (!is_empty (ops) && compare_precedence (t->type, peek (ops)->type))
       merge (exprs, ops);
 
@@ -187,6 +187,18 @@ static struct expr *token_to_expr (struct token t, struct expr *left,
 
     case TOKEN_PLUS: 
       e->type = EXPR_PLUS;
+      break;
+
+    case TOKEN_MINUS: 
+      e->type = EXPR_MINUS;
+      break;
+
+    case TOKEN_MULTIPLY: 
+      e->type = EXPR_MULTIPLY;
+      break;
+
+    case TOKEN_DIVIDE: 
+      e->type = EXPR_DIVIDE;
       break;
 
     case TOKEN_RIGHT_PAREN: 

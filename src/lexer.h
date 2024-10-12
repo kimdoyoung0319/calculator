@@ -7,6 +7,9 @@ enum expr_type {
 	EXPR_PAREN,
 	EXPR_NUMBER,
 	EXPR_PLUS,
+	EXPR_MINUS,
+	EXPR_MULTIPLY,
+	EXPR_DIVIDE,
 };
 
 struct expr {

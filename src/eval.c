@@ -11,7 +11,7 @@ int main (void) {
   struct token *parsed;
   struct expr *expression;
 
-  char str[] = "(3 + (5 + 1))";
+  char str[] = "5 * 8 - 2";
 
   parsed = parser (str, len (str));
   expression = lexer (parsed);
@@ -41,6 +41,18 @@ int evaluate (struct expr *e) {
   switch (e->type) {
     case EXPR_PLUS: 
       r = left + right;
+      break;
+
+    case EXPR_MINUS: 
+      r = left - right;
+      break;
+
+    case EXPR_MULTIPLY: 
+      r = left * right;
+      break;
+
+    case EXPR_DIVIDE: 
+      r = left / right;
       break;
     default: ;
   }
