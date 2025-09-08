@@ -45,6 +45,8 @@ static int append_digit (char, int);
 int lexer (struct token *tokens, const char *str, int len) {
   int i, pos;
 
+  consume (NULL, 0, -1);
+
   for (i = 0, pos = 0; i < len && str[i] != '\0'; i++) {
     /* Since we need one more space for null token, we cannot accept more than
        'MAX_TOKEN_NUM - 1' tokens. */
@@ -55,6 +57,7 @@ int lexer (struct token *tokens, const char *str, int len) {
     pos = consume (tokens, str[i], pos);
   }
 
+  pos++;
   tokens[pos].number = 0;
   tokens[pos].type = TOKEN_NULL;
 
@@ -75,12 +78,14 @@ bool is_operator_token (struct token *t) {
 /* Consumes a character 'ch', writes the result to 'r' at 'pos', and returns
    the next position to be written. Has inner state 'st', which may be modified 
    at every call of this function. Does nothing but returns original 'pos' if 
-   'ch' is not acceptable character. */
+   'ch' is not acceptable character. Resets 'st' if 'pos' is -1. */
 static int consume (struct token *r, char ch, int pos) {
   static enum lex_state st = STATE_NORMAL;
 
-  if (pos == 0 && r[0].type == TOKEN_NULL)
+  if (pos == -1) {
     st = STATE_NORMAL;
+    return 0;
+  }
 
   if (st == STATE_NORMAL && is_special_char (ch)) {
     r[pos++] = char_to_token (ch);
