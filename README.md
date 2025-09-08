@@ -1,4 +1,9 @@
 Calculator
 ---
-Small calculator program, written in C. Written to apply some knowledges about 
-finite automata and AST(Abstract Syntax Tree). 
+Small calculator REPL program, written in C. Capable of parsing and evaluating
+integer expressions with basic arithmetic operations.
+
+## Build
+
+To build, run `make` in the root directory. The output executable will be placed 
+in `build`.
