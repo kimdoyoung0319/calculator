@@ -11,17 +11,25 @@ int len (char *);
 int main (void) {
   int result;
   char buffer[BUFFER_SIZE];
-  struct token *parsed;
   struct expr *expression;
+  struct token *tokens = (struct token *) calloc (MAX_TOKEN_NUM, 
+                                                  sizeof (struct token));
 
   printf (">> ");
   while (fgets (buffer, BUFFER_SIZE, stdin) != NULL) {
-    parsed = parser (buffer, len (buffer));
-    expression = lexer (parsed);
+
+    if (lexer (tokens, buffer, len (buffer)) == -1) {
+      printf("ERROR: input string is too long\n");
+      continue;
+    }
+
+    expression = parser (tokens);
     result = evaluate (expression);
     destroy_expr (expression);
     printf("   = %d\n>> ", result);
   }
+
+  free (tokens);
 
   return 0;
 }
@@ -57,7 +65,9 @@ int evaluate (struct expr *e) {
     case EXPR_DIVIDE: 
       r = left / right;
       break;
-    default: ;
+
+    default: 
+      r = left + right;
   }
 
   return r;

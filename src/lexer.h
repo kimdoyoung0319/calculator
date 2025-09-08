@@ -1,25 +1,38 @@
-#ifndef __LEXER_H__
-#define __LEXER_H__
+#ifndef __PARSER_H__
+#define __PARSER_H__
 
-#include "parser.h"
+#include <assert.h>
+#include <stdbool.h>
 
-enum expr_type {
-	EXPR_PAREN,
-	EXPR_NUMBER,
-	EXPR_PLUS,
-	EXPR_MINUS,
-	EXPR_MULTIPLY,
-	EXPR_DIVIDE,
+enum token_type {
+	TOKEN_NULL,
+	TOKEN_NUMBER,
+	TOKEN_PLUS,
+	TOKEN_MINUS,
+	TOKEN_MULTIPLY,
+	TOKEN_DIVIDE,
+	TOKEN_LEFT_PAREN,
+	TOKEN_RIGHT_PAREN,
 };
 
-struct expr {
+enum associativity {
+	ASSOC_LEFT,
+	ASSOC_RIGHT,
+	ASSOC_NONE,
+};
+
+extern const int MAX_TOKEN_NUM;
+extern const int TOKEN_PRECEDENCES[];
+extern const enum associativity TOKEN_ASSOCIATIVITY[];
+
+struct token {
 	int number;
-	enum expr_type type;
-	struct expr *left, *right;
+	enum token_type type;
 };
 
-struct expr *lexer (struct token *);
-struct expr *make_expr (enum expr_type, struct expr *, struct expr *);
-void destroy_expr (struct expr *);
+int lexer (struct token *, const char *, int);
+bool is_token_null (struct token *);
+bool is_operator_token (struct token *);
+int token_type_to_precedence (enum token_type);
 
 #endif
