@@ -1,7 +1,6 @@
 #ifndef LEXER_H_
 #define LEXER_H_
 
-#include <assert.h>
 #include <stdbool.h>
 
 enum token_type {

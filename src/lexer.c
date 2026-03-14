@@ -1,6 +1,6 @@
 #include "lexer.h"
+#include <assert.h>
 #include <ctype.h>
-#include <stdbool.h>
 #include <stdlib.h>
 
 /* Maximum number of tokens. */
@@ -32,7 +32,7 @@ static struct token char_to_token (char);
 static struct token int_to_token (int);
 static int append_digit (char, int);
 
-/* Perform lexical analysis on 'str' whose length is 'len', and stores the
+/* Performs lexical analysis on 'str' whose length is 'len', and stores the
  * resulting array of tokens to 'tokens'. The resulting array is terminated with
  * a null token. Returns the number of elements stored in 'tokens' if the tokens
  * can be stored within 'tokens'. Otherwise, returns -1. */

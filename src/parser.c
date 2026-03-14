@@ -27,9 +27,8 @@ static struct expr *token_to_expr (struct token, struct expr *, struct expr *);
 static bool compare_precedence (enum token_type, enum expr_type);
 static bool is_empty (struct expr_stack *);
 
-/* Generates and returns a root of abstract syntax tree by doing lexical
- * analysis of given token sequence 'tokens'. 'tokens' must be terminated with
- * TOKEN_NULL. */
+/* Generates and returns a root of abstract syntax tree by parsing given token
+ * sequence 'tokens'. 'tokens' must be terminated with TOKEN_NULL. */
 struct expr *parser (struct token *tokens) {
     struct token *t;
     struct expr *result;
@@ -55,7 +54,7 @@ struct expr *parser (struct token *tokens) {
  * right branch of 'right'. */
 struct expr *make_expr (enum expr_type t, struct expr *left,
                         struct expr *right) {
-    struct expr *new = (struct expr *)malloc (sizeof (struct expr));
+    struct expr *new = malloc (sizeof (struct expr));
     new->type = t;
     new->left = left;
     new->right = right;
@@ -136,8 +135,7 @@ static void merge (struct expr_stack *exprs, struct expr_stack *ops) {
 /* Constructs empty expression stack, and returns it. */
 static struct expr_stack make_stack (void) {
     struct expr_stack e = {
-        .arr = (struct expr **)malloc (sizeof (struct expr *) * MAX_TOKEN_NUM),
-        .top = 0};
+        .arr = malloc (sizeof (struct expr *) * MAX_TOKEN_NUM), .top = 0};
 
     return e;
 }
@@ -166,12 +164,12 @@ static struct expr *peek (const struct expr_stack *st) {
 /* Converts 't' into expression that has left branch of 'left' and right branch
  * of 'right', and returns it. 't' must not be a null token and it does NOT
  * initializes 'number' member of returnded expression when it is not an
- * expression of EXPR_NUMBER type. Also, right parenthese are converted into
+ * expression of EXPR_NUMBER type. Also, right parentheses are converted into
  * expression of EXPR_PAREN type which is just a dummy type for lexing
  * algorithm. */
 static struct expr *token_to_expr (struct token t, struct expr *left,
                                    struct expr *right) {
-    struct expr *e = (struct expr *)malloc (sizeof (struct expr));
+    struct expr *e = malloc (sizeof (struct expr));
     assert (t.type != TOKEN_NULL);
 
     e->left = left;

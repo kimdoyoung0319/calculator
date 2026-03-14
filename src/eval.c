@@ -1,24 +1,24 @@
 #include "lexer.h"
 #include "parser.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 enum { BUFFER_SIZE = 100 };
 
 int evaluate (struct expr *);
-int len (char *);
 
 int main (void) {
     int result;
     char buffer[BUFFER_SIZE];
     struct expr *expression;
-    struct token *tokens =
-        (struct token *)calloc (MAX_TOKEN_NUM, sizeof (struct token));
+    struct token *tokens = calloc (MAX_TOKEN_NUM, sizeof (struct token));
 
     printf (">> ");
     while (fgets (buffer, BUFFER_SIZE, stdin) != NULL) {
 
-        if (lexer (tokens, buffer, len (buffer)) == -1) {
+        if (lexer (tokens, buffer, strlen (buffer)) == -1) {
             printf ("ERROR: input string is too long\n");
             continue;
         }
@@ -67,17 +67,9 @@ int evaluate (struct expr *e) {
         break;
 
     default:
-        r = left + right;
+        /* This branch should never be reached. */
+        assert (false);
     }
 
     return r;
-}
-
-/* Returns the length of null-terminated string 'str'. */
-int len (char *str) {
-    int i;
-    for (i = 0; str[i] != '\0'; i++)
-        ;
-
-    return i;
 }
