@@ -32,6 +32,5 @@ struct token {
 int lexer (struct token *, const char *, int);
 bool is_token_null (struct token *);
 bool is_operator_token (struct token *);
-int token_type_to_precedence (enum token_type);
 
 #endif

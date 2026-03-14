@@ -18,8 +18,8 @@ struct expr {
     struct expr *left, *right;
 };
 
-struct expr *parser (struct token *);
-struct expr *make_expr (enum expr_type, struct expr *, struct expr *);
+int parser (struct token *, struct expr **);
+struct expr *make_expr (enum expr_type, int, struct expr *, struct expr *);
 void destroy_expr (struct expr *);
 
 #endif
