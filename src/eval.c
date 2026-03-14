@@ -1,82 +1,83 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "lexer.h"
 #include "parser.h"
+#include <stdio.h>
+#include <stdlib.h>
 
-const int BUFFER_SIZE = 100;
+enum { BUFFER_SIZE = 100 };
 
 int evaluate (struct expr *);
 int len (char *);
 
 int main (void) {
-  int result;
-  char buffer[BUFFER_SIZE];
-  struct expr *expression;
-  struct token *tokens = (struct token *) calloc (MAX_TOKEN_NUM, 
-                                                  sizeof (struct token));
+    int result;
+    char buffer[BUFFER_SIZE];
+    struct expr *expression;
+    struct token *tokens =
+        (struct token *)calloc (MAX_TOKEN_NUM, sizeof (struct token));
 
-  printf (">> ");
-  while (fgets (buffer, BUFFER_SIZE, stdin) != NULL) {
+    printf (">> ");
+    while (fgets (buffer, BUFFER_SIZE, stdin) != NULL) {
 
-    if (lexer (tokens, buffer, len (buffer)) == -1) {
-      printf("ERROR: input string is too long\n");
-      continue;
+        if (lexer (tokens, buffer, len (buffer)) == -1) {
+            printf ("ERROR: input string is too long\n");
+            continue;
+        }
+
+        expression = parser (tokens);
+        result = evaluate (expression);
+        destroy_expr (expression);
+        printf ("   = %d\n>> ", result);
     }
 
-    expression = parser (tokens);
-    result = evaluate (expression);
-    destroy_expr (expression);
-    printf("   = %d\n>> ", result);
-  }
+    free (tokens);
 
-  free (tokens);
-
-  return 0;
+    return 0;
 }
 
 /* Evaluates an expression that is represented by an abstract syntax tree named
-   'e', returns the evaluated integer. */
+ * 'e', returns the evaluated integer. */
 int evaluate (struct expr *e) {
-  int r, left, right;
+    int r, left, right;
 
-  assert (e->type != EXPR_PAREN);
+    assert (e->type != EXPR_PAREN);
 
-	if (e->type == EXPR_NUMBER)
-		return e->number;
+    if (e->type == EXPR_NUMBER)
+        return e->number;
 
-  assert (e->left != NULL && e->right != NULL);
-  
-  left = evaluate (e->left);
-  right = evaluate (e->right);
+    assert (e->left != NULL && e->right != NULL);
 
-  switch (e->type) {
-    case EXPR_PLUS: 
-      r = left + right;
-      break;
+    left = evaluate (e->left);
+    right = evaluate (e->right);
 
-    case EXPR_MINUS: 
-      r = left - right;
-      break;
+    switch (e->type) {
+    case EXPR_PLUS:
+        r = left + right;
+        break;
 
-    case EXPR_MULTIPLY: 
-      r = left * right;
-      break;
+    case EXPR_MINUS:
+        r = left - right;
+        break;
 
-    case EXPR_DIVIDE: 
-      r = left / right;
-      break;
+    case EXPR_MULTIPLY:
+        r = left * right;
+        break;
 
-    default: 
-      r = left + right;
-  }
+    case EXPR_DIVIDE:
+        r = left / right;
+        break;
 
-  return r;
+    default:
+        r = left + right;
+    }
+
+    return r;
 }
 
 /* Returns the length of null-terminated string 'str'. */
 int len (char *str) {
-  int i;
-  for (i = 0; str[i] != '\0'; i++);
+    int i;
+    for (i = 0; str[i] != '\0'; i++)
+        ;
 
-  return i;
+    return i;
 }

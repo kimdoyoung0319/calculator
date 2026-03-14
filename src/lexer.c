@@ -1,7 +1,7 @@
+#include "lexer.h"
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include "lexer.h"
 
 /* Maximum number of tokens. */
 const int MAX_TOKEN_NUM = 100;
@@ -10,25 +10,19 @@ const int MAX_TOKEN_NUM = 100;
 const int TOKEN_PRECEDENCES[] = {0, 0, 1, 1, 2, 2, 0, 0};
 
 /* Associativity of tokens. ASSOC_NONE means that the token is not an operator,
-   hence there's no associativity. */
+ * hence there's no associativity. */
 const enum associativity TOKEN_ASSOCIATIVITY[] = {
-  ASSOC_NONE,
-  ASSOC_NONE,
-  ASSOC_LEFT,
-  ASSOC_LEFT,
-  ASSOC_LEFT,
-  ASSOC_LEFT,
-  ASSOC_NONE,
-  ASSOC_NONE,
+    ASSOC_NONE, ASSOC_NONE, ASSOC_LEFT, ASSOC_LEFT,
+    ASSOC_LEFT, ASSOC_LEFT, ASSOC_NONE, ASSOC_NONE,
 };
 
 /* Array and its size of special characters used in the calculator. */
-const int SPECIAL_CHARS_NUM = 6;
+enum { SPECIAL_CHARS_NUM = 6 };
 const char SPECIAL_CHARS[SPECIAL_CHARS_NUM] = {'+', '-', '*', '/', '(', ')'};
 
 enum lex_state {
-  STATE_NUMBER,
-  STATE_NORMAL,
+    STATE_NUMBER,
+    STATE_NORMAL,
 };
 
 static int consume (struct token *, char, int);
@@ -38,130 +32,131 @@ static struct token char_to_token (char);
 static struct token int_to_token (int);
 static int append_digit (char, int);
 
-/* Perform lexical analysis on 'str' whose length is 'len', and stores the 
-   resulting array of tokens to 'tokens'. The resulting array is terminated with
-   a null token. Returns the number of elements stored in 'tokens' if the tokens
-   can be stored within 'tokens'. Otherwise, returns -1. */
+/* Perform lexical analysis on 'str' whose length is 'len', and stores the
+ * resulting array of tokens to 'tokens'. The resulting array is terminated with
+ * a null token. Returns the number of elements stored in 'tokens' if the tokens
+ * can be stored within 'tokens'. Otherwise, returns -1. */
 int lexer (struct token *tokens, const char *str, int len) {
-  int i, pos;
+    int i, pos;
 
-  consume (NULL, 0, -1);
+    consume (NULL, 0, -1);
 
-  for (i = 0, pos = 0; i < len && str[i] != '\0'; i++) {
-    /* Since we need one more space for null token, we cannot accept more than
-       'MAX_TOKEN_NUM - 1' tokens. */
-    if (pos == MAX_TOKEN_NUM - 1) {
-      return -1;
+    for (i = 0, pos = 0; i < len && str[i] != '\0'; i++) {
+        /* Since we need one more space for null token, we cannot accept more
+           than 'MAX_TOKEN_NUM - 1' tokens. */
+        if (pos == MAX_TOKEN_NUM - 1) {
+            return -1;
+        }
+
+        pos = consume (tokens, str[i], pos);
     }
 
-    pos = consume (tokens, str[i], pos);
-  }
+    pos++;
+    tokens[pos].number = 0;
+    tokens[pos].type = TOKEN_NULL;
 
-  pos++;
-  tokens[pos].number = 0;
-  tokens[pos].type = TOKEN_NULL;
-
-  return pos + 1;
+    return pos + 1;
 }
 
 /* Returns true if 't' is null token. */
-bool is_token_null (struct token *t) {
-  return t->type == TOKEN_NULL;
-}
+bool is_token_null (struct token *t) { return t->type == TOKEN_NULL; }
 
 /* Returns true if 't' is an operator token, such as +, -, *, /. */
 bool is_operator_token (struct token *t) {
-  return t->type == TOKEN_PLUS || t->type == TOKEN_MINUS 
-         || t->type == TOKEN_MULTIPLY || t->type == TOKEN_DIVIDE;
+    return t->type == TOKEN_PLUS || t->type == TOKEN_MINUS ||
+           t->type == TOKEN_MULTIPLY || t->type == TOKEN_DIVIDE;
 }
 
 /* Consumes a character 'ch', writes the result to 'r' at 'pos', and returns
-   the next position to be written. Has inner state 'st', which may be modified 
-   at every call of this function. Does nothing but returns original 'pos' if 
-   'ch' is not acceptable character. Resets 'st' if 'pos' is -1. */
+ * the next position to be written. Has inner state 'st', which may be modified
+ * at every call of this function. Does nothing but returns original 'pos' if
+ * 'ch' is not acceptable character. Resets 'st' if 'pos' is -1. */
 static int consume (struct token *r, char ch, int pos) {
-  static enum lex_state st = STATE_NORMAL;
+    static enum lex_state st = STATE_NORMAL;
 
-  if (pos == -1) {
-    st = STATE_NORMAL;
-    return 0;
-  }
+    if (pos == -1) {
+        st = STATE_NORMAL;
+        return 0;
+    }
 
-  if (st == STATE_NORMAL && is_special_char (ch)) {
-    r[pos++] = char_to_token (ch);
+    if (st == STATE_NORMAL && is_special_char (ch)) {
+        r[pos++] = char_to_token (ch);
+        return pos;
+    }
+
+    if (st == STATE_NORMAL && is_digit (ch)) {
+        r[pos] = int_to_token (ch - '0');
+        st = STATE_NUMBER;
+        return pos;
+    }
+
+    if (st == STATE_NUMBER && is_special_char (ch)) {
+        r[++pos] = char_to_token (ch);
+        st = STATE_NORMAL;
+        return ++pos;
+    }
+
+    if (st == STATE_NUMBER && is_digit (ch)) {
+        r[pos].number = append_digit (ch, r[pos].number);
+        return pos;
+    }
+
     return pos;
-  }
-
-  if (st == STATE_NORMAL && is_digit (ch)) {
-    r[pos] = int_to_token (ch - '0');
-    st = STATE_NUMBER;
-    return pos;
-  }
-
-  if (st == STATE_NUMBER && is_special_char (ch)) {
-    r[++pos] = char_to_token (ch);
-    st = STATE_NORMAL;
-    return ++pos;
-  }
-
-  if (st == STATE_NUMBER && is_digit (ch)) {
-    r[pos].number = append_digit (ch, r[pos].number);
-    return pos;
-  }
-
-  return pos;
 }
 
-/* Returns true if 'ch' is a special character specified at the top of this 
-   file. */
+/* Returns true if 'ch' is a special character specified at the top of this
+ * file. */
 static bool is_special_char (char ch) {
-  for (int i = 0; i < SPECIAL_CHARS_NUM; i++)
-    if (SPECIAL_CHARS[i] == ch)
-      return true;
+    for (int i = 0; i < SPECIAL_CHARS_NUM; i++)
+        if (SPECIAL_CHARS[i] == ch)
+            return true;
 
-  return false;
+    return false;
 }
 
 /* Returns true if 'ch' is a digit of ASCII character. */
-static bool is_digit (char ch) {
-  return '0' <= ch && ch <= '9';
-}
+static bool is_digit (char ch) { return '0' <= ch && ch <= '9'; }
 
-/* Converts single character 'ch' to token. It is NOT safe to pass any 
-   arbitrary character to argument since it will return 'TOKEN_NULL' when 'ch' 
-   is not a valid convertible character. */
+/* Converts single character 'ch' to token. It is NOT safe to pass any
+ * arbitrary character to argument since it will return 'TOKEN_NULL' when 'ch'
+ * is not a valid convertible character. */
 static struct token char_to_token (char ch) {
-  struct token t;
+    struct token t;
 
-  assert (is_special_char (ch));
+    assert (is_special_char (ch));
 
-  switch (ch) {
-    case '+': t.type = TOKEN_PLUS;
-              break;
-    case '-': t.type = TOKEN_MINUS;
-              break;
-    case '*': t.type = TOKEN_MULTIPLY;
-              break;
-    case '/': t.type = TOKEN_DIVIDE;
-              break;
-    case '(': t.type = TOKEN_LEFT_PAREN;
-              break;
-    case ')': t.type = TOKEN_RIGHT_PAREN;
-              break;
-    default: t.type = TOKEN_NULL;
-  }
+    switch (ch) {
+    case '+':
+        t.type = TOKEN_PLUS;
+        break;
+    case '-':
+        t.type = TOKEN_MINUS;
+        break;
+    case '*':
+        t.type = TOKEN_MULTIPLY;
+        break;
+    case '/':
+        t.type = TOKEN_DIVIDE;
+        break;
+    case '(':
+        t.type = TOKEN_LEFT_PAREN;
+        break;
+    case ')':
+        t.type = TOKEN_RIGHT_PAREN;
+        break;
+    default:
+        t.type = TOKEN_NULL;
+    }
 
-  return t;
+    return t;
 }
 
 /* Converts integer 'n' into token. */
 static struct token int_to_token (int n) {
-  struct token t = { .type = TOKEN_NUMBER, .number = n };
-  return t;
+    struct token t = {.type = TOKEN_NUMBER, .number = n};
+    return t;
 }
 
-/* Appends digit represented by 'ch' into 'n', and returns the appended 
-   number. i.e. append_digit ('6', 34) will return 346. */
-static int append_digit (char ch, int n) {
-  return 10 * n + (ch - '0');
-}
+/* Appends digit represented by 'ch' into 'n', and returns the appended
+ * number. i.e. append_digit ('6', 34) will return 346. */
+static int append_digit (char ch, int n) { return 10 * n + (ch - '0'); }

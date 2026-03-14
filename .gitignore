@@ -3,3 +3,6 @@ build/
 
 # Ignores VScode settings directory.
 .vscode/
+
+# Ignore miscellaneous files.
+.DS_Store
